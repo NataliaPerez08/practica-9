@@ -1,0 +1,27 @@
+CREATE USER 'userp7'@'localhost' IDENTIFIED BY 'some_pass_07';
+GRANT ALL PRIVILEGES ON mydb.* TO 'userp7'@'localhost';
+FLUSH PRIVILEGES;
+
+
+mysql -u userp7 -ppassword -h localhost hospital
+
+
+
+CREATE USER natalia@localhost IDENTIFIED BY 'some_pass_07';
+GRANT ALL PRIVILEGES ON mydb.* TO natalia@localhost;
+FLUSH PRIVILEGES;
+
+mysql -u natalia -p password -h localhost hospital
+
+
+
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
+
+GRANT ALL PRIVILEGES ON hospital.* TO natalia@localhost;
+
+
+Contraseña para el primer dump: p7_aesPass
+
+Comando para generar el dump
+
+mysqldump -u natalia -p hospital > hospital-v1.sql
