@@ -1,11 +1,12 @@
 import json
 import re
 
-def lector(path:str):
+def lector(path:str)->str:
     with open(path, 'r') as file:
         return file.read()
     
-def recuperar_pacientes(lectura):    
+def recuperar_pacientes()->list:  
+    lectura = lector('ArchivosBase/diagnosticos_tratamientos.txt')
     # Eliminar los corchetes del inicio y fin del string
     string_sin_corchetes = lectura.strip('{}')
 
@@ -27,8 +28,5 @@ def recuperar_pacientes(lectura):
         jo = json.loads(value)
         json_list.append(jo)
     return json_list 
-    
-lectura = lector('ArchivosBase/diagnosticos_tratamientos.txt')
-pacientes= recuperar_pacientes(lectura)
 
 

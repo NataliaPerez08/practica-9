@@ -12,6 +12,11 @@ from Cryptodome.Random import get_random_bytes
 from Cryptodome.Cipher import AES
 import MySQLdb, config, sys
 
+#--- Aquí empezamos a modificar ---
+import lector_txt as lt
+import cifrador as cif
+#--- Aquí terminamos de modificar ---
+
 # Se obtiene la contraseña para cifrar los datos
 password = getpass()
 
@@ -50,14 +55,6 @@ treatment_ciphertext = b64encode(treatment_ciphertext)
 diagnosis_nonce = b64encode(diagnosis_nonce)
 treatment_nonce = b64encode(treatment_nonce)
 
-print('Diagnosis:', diagnosis)
-print('Medical treatment:', treatment)
-print('PasswordSalt:', passwordSalt)
-print('AES encryption key:', key.hex())
-print(f"Nonces:- diagnosis:{diagnosis_nonce}; treatment:{treatment_nonce}")
-print('Diagnosis encrypted:', diagnosis_ciphertext)
-print('Treatment encrypted:', treatment_ciphertext)
-
 mydb = None
 # Guardar los datos en una base de datos relacional
 try:
@@ -71,10 +68,26 @@ try:
 						VALUES (%s,%s,%s,%s,%s,%s)"""
     record_to_insert = (name, diagnosis_ciphertext, treatment_ciphertext, passwordSalt, diagnosis_nonce, treatment_nonce)
     cursor.execute(insert_query, record_to_insert)
-
     mydb.commit()
+    
+    # Recuperar los registros del txt
+    pacientes = lt.recuperar_pacientes()
+    for paciente in pacientes:
+        name = paciente['name']
+        diagnosis = paciente['diagnosis']
+        treatment = paciente['treatment']
+        
+        # Proceder a cifrar los datos
+        diagnosis_ciphertext, treatment_ciphertext = cif.cifrar(diagnosis, treatment, diag_aes, treat_aes)
+        
+        record_to_insert = (name, diagnosis_ciphertext, treatment_ciphertext, passwordSalt, diagnosis_nonce, treatment_nonce)
+        print(f"Inserting record: {record_to_insert}")
+        
+        cursor.execute(insert_query, record_to_insert)
+        mydb.commit()
+    
     print("Record inserted successfully with id ", cursor.lastrowid)
-
+    
 except Exception as err:
   print(f"\nSomething went wrong: {err}")
   sys.exit()
