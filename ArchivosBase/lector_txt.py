@@ -6,7 +6,7 @@ def lector(path:str)->str:
         return file.read()
     
 def recuperar_pacientes()->list:  
-    lectura = lector('ArchivosBase/diagnosticos_tratamientos.txt')
+    lectura = lector('./diagnosticos_tratamientos.txt')
     # Eliminar los corchetes del inicio y fin del string
     string_sin_corchetes = lectura.strip('{}')
 
