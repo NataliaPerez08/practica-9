@@ -1,8 +1,10 @@
 # Modulo que se encarga de descifrar los datos de los pacientes
 
 from base64 import b64decode
-from Cryptodome.Cipher import AES
 from Cryptodome.Protocol.KDF import PBKDF2
+from Cryptodome.Hash import SHA512
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Cipher import AES
 import MySQLdb, config, sys
   
 
@@ -14,7 +16,7 @@ def descifrar(diagnosis_ciphertext, treatment_ciphertext, diag_aes, treat_aes):
     # Descifrar los campos considerados sensibles
     diagnosis = diag_aes.decrypt(diagnosis_ciphertext)
     treatment = treat_aes.decrypt(treatment_ciphertext)
-    
+    print()
     # Decodificar los bytes a string
     diagnosis = diagnosis.decode('utf-8')
     treatment = treatment.decode('utf-8')
@@ -46,11 +48,11 @@ def consultar_pacientes(password):
         treatment_nonce = b64decode(treatment_nonce)
 
         # Derivar la llave a partir de la contraseña y la salt
-        key = PBKDF2(password, passwordSalt, dkLen=32, count=1000000)
+        key = PBKDF2(password, passwordSalt, 32, count=1000000, hmac_hash_module=SHA512)
         
         # Crear los objetos AES para descifrar
-        diag_aes = AES.new(key,AES.MODE_GCM, nonce=diagnosis_nonce)
-        treat_aes = AES.new(key, AES.MODE_GCM, nonce=treatment_nonce)
+        diag_aes = AES.new(key,AES.MODE_CTR, nonce=diagnosis_nonce)
+        treat_aes = AES.new(key, AES.MODE_CTR, nonce=treatment_nonce)
         
         diagnosis, treatment = descifrar(diagnosis_ciphertext, treatment_ciphertext, diag_aes, treat_aes)
         print(f"Name: {name}\nDiagnosis: {diagnosis}\nTreatment: {treatment}\n")
