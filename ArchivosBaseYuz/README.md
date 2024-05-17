@@ -3,7 +3,13 @@
 
 ## Ejecución
 ```
-$ python3 encrypt.py
+$ python3 encryptCTR.py
+$ python3 descifradorCTR.py
+
+$ python3 encryptGCM.py
+$ python3 descifradorGCM.py
+
+
 ```
 
 ## Instalación de paquetes
