@@ -20,7 +20,7 @@ mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
 GRANT ALL PRIVILEGES ON hospital.* TO natalia@localhost;
 
 
-Contraseña para el primer dump: p7_aes
+Contraseña para el primer dump: p9_aes
 
 Comando para generar el dump
 
