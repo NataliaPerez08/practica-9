@@ -10,8 +10,4 @@ def cifrar(diagnosis, treatment, diag_aes, treat_aes):
     diagnosis_ciphertext = diag_aes.encrypt(diagnosis)
     treatment_ciphertext = treat_aes.encrypt(treatment)
     
-    # Se codifica en base 64
-    diagnosis_ciphertext = b64encode(diagnosis_ciphertext)
-    treatment_ciphertext = b64encode(treatment_ciphertext)
-
     return diagnosis_ciphertext, treatment_ciphertext

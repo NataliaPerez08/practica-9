@@ -68,7 +68,7 @@ try:
 						VALUES (%s,%s,%s,%s,%s,%s)"""
     record_to_insert = (name, diagnosis_ciphertext, treatment_ciphertext, passwordSalt, diagnosis_nonce, treatment_nonce)
     cursor.execute(insert_query, record_to_insert)
-    mydb.commit()
+    #mydb.commit()
     
     # Recuperar los registros del txt
     pacientes = lt.recuperar_pacientes()
@@ -77,14 +77,25 @@ try:
         diagnosis = paciente['diagnosis']
         treatment = paciente['treatment']
         
-        # Proceder a cifrar los datos
-        diagnosis_ciphertext, treatment_ciphertext = cif.cifrar(diagnosis, treatment, diag_aes, treat_aes)
+        # Pasamos a bytes
+        diagnosis = bytes(diagnosis, 'utf-8')
+        treatment = bytes(treatment, 'utf-8')
+        
+        # Cifrado de los campos considerados sensibles
+        diagnosis_ciphertext = diag_aes.encrypt(diagnosis)
+        treatment_ciphertext = treat_aes.encrypt(treatment)
+        
+        # Se codifica en base 64
+        diagnosis_ciphertext = b64encode(diagnosis_ciphertext)
+        treatment_ciphertext = b64encode(treatment_ciphertext)
+        
+        print(len(diagnosis_ciphertext))
         
         record_to_insert = (name, diagnosis_ciphertext, treatment_ciphertext, passwordSalt, diagnosis_nonce, treatment_nonce)
         print(f"Inserting record: {record_to_insert}")
         
         cursor.execute(insert_query, record_to_insert)
-        mydb.commit()
+        #mydb.commit()
     
     print("Record inserted successfully with id ", cursor.lastrowid)
     
