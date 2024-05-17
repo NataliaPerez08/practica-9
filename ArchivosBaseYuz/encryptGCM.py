@@ -1,37 +1,48 @@
 #!/usr/bin/env python3
 
+# Paulo Contreras Flores [paulo.contreras.flores@gmail.com]
+# Tonatihu Sánchez (uso de MySQLdb, PyCryptodome y otros ajustes)
+# Equipo los gatitos cuanticos, cifrado AES en modo GCM y algorimo
+# de derivación de llaves scrypt
 
 from getpass import getpass
 from base64 import b64encode
+from hashlib import scrypt
 from SecureString import clearmem
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Hash import SHA512
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Cipher import AES
 import MySQLdb, config, sys
+
 import lector_txt as lt
 
 
 # Se obtiene la contraseña para cifrar los datos
 password = getpass()
 
-# Generar salt y derivar la clave usando PBKDF2
+# El algoritmo de derivación de llaves scrypt necesita una salt,
+# por lo que generamos una secuencia pseudoaleatoria de 16 bytes.
 passwordSalt = get_random_bytes(16)
-key = PBKDF2(password, passwordSalt, 32, count=1000000, hmac_hash_module=SHA512)
 
+password = bytes(password, 'utf-8')
+# En esta práctica emplearemos AES-256, por lo que necesitamos
+# que el algoritmo de derivación de llaves scrypt nos proporcione
+# una llave 256 bits (32 bytes).
+key = scrypt(password, salt=passwordSalt, n=2048, r=8, p=1, maxmem=0, dklen=32)
+
+# Modo de operación GCM
 def cifrar_datos(diagnosis, treatment, key):
     # Generar nuevos nonces para cada cifrado
     diagnosis_nonce = get_random_bytes(8)
     treatment_nonce = get_random_bytes(8)
-    
-    # Crear objetos AES para cifrado
-    diag_aes = AES.new(key, AES.MODE_CTR, nonce=diagnosis_nonce)
-    treat_aes = AES.new(key, AES.MODE_CTR, nonce=treatment_nonce)
-    
+
+    # Crear objetos AES para cada cifrado
+    diag_aes = AES.new(key, AES.MODE_GCM, nonce=diagnosis_nonce)
+    treat_aes = AES.new(key, AES.MODE_GCM, nonce=treatment_nonce)
+
     # Cifrar los campos sensibles
     diagnosis_ciphertext = diag_aes.encrypt(diagnosis.encode('utf-8'))
     treatment_ciphertext = treat_aes.encrypt(treatment.encode('utf-8'))
-    
+
     # Codificar en base64
     diagnosis_ciphertext = b64encode(diagnosis_ciphertext).decode('utf-8')
     treatment_ciphertext = b64encode(treatment_ciphertext).decode('utf-8')
@@ -39,6 +50,7 @@ def cifrar_datos(diagnosis, treatment, key):
     treatment_nonce = b64encode(treatment_nonce).decode('utf-8')
     
     return diagnosis_ciphertext, treatment_ciphertext, diagnosis_nonce, treatment_nonce
+
 
 # Conexión a la base de datos y almacenamiento
 try:
@@ -67,17 +79,21 @@ try:
         cursor.execute(insert_query, record_to_insert)
         mydb.commit()
     
-    print("Records inserted successfully.")
+    print("Inserción exitosa.")
     
 except Exception as err:
-    print(f"Something went wrong: {err}")
+    print(f"Ocurrió un error")
     sys.exit()
 
 finally:
     if mydb:
         cursor.close()
         mydb.close()
-        print("DBMS connection is closed")
+        print("Conexion finalizada")
+
+
+
+
 
 
 # Sobrescribir el contenido de las variables para evitar que se
